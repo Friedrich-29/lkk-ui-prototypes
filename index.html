@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F5F8FB">
+  <title>Меню ЛКК — интерактивный прототип</title>
+  <meta name="description" content="Интерактивное сравнение вариантов бокового меню ЛКК">
+  <style>
+    :root {
+      /* UI kit: blue/main, blue/200, blue/300, grey/300, grey/320, grey/350, bg/grey-hover */
+      --blue: #3c83f6;
+      --selected: #eff5fe;
+      --selected-strong: #e8f0fe;
+      --page: #f5f8fb;
+      --hover: #eef3f9;
+      --line: #d5e0eb;
+      --ink: #273641;
+      --secondary: #687987;
+      --white: #fff;
+    }
+    * { box-sizing: border-box; }
+    html { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); background: var(--page); }
+    body { margin: 0; min-width: 320px; }
+    button { font: inherit; cursor: pointer; }
+    .app { min-height: 100vh; display: flex; flex-direction: column; }
+    .toolbar { display: flex; gap: 20px; align-items: flex-start; justify-content: space-between; padding: 22px 32px; background: var(--white); border-bottom: 1px solid var(--line); }
+    .toolbar h1 { font-size: 20px; line-height: 28px; margin: 0 0 4px; font-weight: 650; }
+    .toolbar p { margin: 0; color: var(--secondary); font-size: 13px; line-height: 20px; }
+    .variant-picker { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .variant-picker button, .tool-actions button { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; color: var(--ink); background: var(--white); font-size: 13px; line-height: 18px; white-space: nowrap; transition: background .18s, border-color .18s, color .18s; }
+    .variant-picker button:hover, .tool-actions button:hover { background: var(--hover); }
+    .variant-picker button[aria-pressed="true"] { color: var(--blue); background: var(--selected); border-color: var(--blue); }
+    .stage { display: flex; align-items: stretch; min-height: calc(100vh - 108px); }
+    .sidebar { width: 304px; flex: 0 0 304px; background: var(--white); border-right: 1px solid var(--line); padding: 20px 16px 32px; }
+    .brand { height: 60px; display: flex; align-items: flex-start; justify-content: space-between; padding: 0 0 12px 0; }
+    .brand-name { font-size: 16px; font-weight: 750; letter-spacing: -.7px; line-height: 26px; position: relative; margin: 2px 0 0 2px; color: #171d22; }
+    .brand-name::before { content: ""; position: absolute; left: -4px; top: -2px; width: 27px; height: 27px; border: 2px solid #ed3d37; pointer-events: none; }
+    .collapse-btn { width: 32px; height: 32px; display: grid; place-items: center; background: var(--hover); color: var(--ink); border: 0; border-radius: 7px; }
+    .collapse-btn:hover { background: var(--line); }
+    .nav { display: flex; flex-direction: column; gap: 8px; }
+    .nav-row { width: 100%; display: flex; align-items: center; border: 0; background: transparent; color: var(--ink); text-align: left; border-radius: 8px; min-height: 48px; padding: 0 12px; transition: background .16s, color .16s; }
+    .nav-row:hover { background: var(--hover); }
+    .nav-row:focus-visible, .collapse-btn:focus-visible, .variant-picker button:focus-visible, .tool-actions button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .nav-row.active { background: var(--selected); color: var(--blue); }
+    .nav-icon { width: 17px; height: 17px; margin-right: 10px; flex: 0 0 17px; stroke: currentColor; stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-label { flex: 1; font-size: 14px; line-height: 19px; font-weight: 460; }
+    .chevron { width: 17px; height: 17px; flex: 0 0 17px; margin-left: 5px; stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
+    .nav-row[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+    .children-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
+    .group.open .children-wrap { grid-template-rows: 1fr; }
+    .children-clip { min-height: 0; overflow: hidden; }
+    .children { display: flex; flex-direction: column; padding: 0 0 3px 16px; position: relative; }
+    .child-row { width: 100%; min-height: 46px; display: flex; align-items: center; text-align: left; gap: 11px; padding: 8px 12px 8px 20px; color: var(--ink); background: transparent; border: 0; border-radius: 8px; font-size: 14px; line-height: 19px; transition: background .16s, color .16s; position: relative; }
+    .child-row:hover { background: var(--hover); }
+    .child-row:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+    .child-row.active { background: var(--selected); color: var(--blue); }
+    .child-dot { width: 5px; height: 5px; flex: 0 0 5px; border-radius: 50%; border: 1px solid currentColor; display: none; }
+    .content { flex: 1; min-width: 0; padding: 48px clamp(24px, 6vw, 80px); }
+    .crumb { font-size: 13px; color: var(--secondary); margin-bottom: 20px; }
+    .content h2 { font-size: 30px; line-height: 38px; margin: 0 0 16px; font-weight: 650; }
+    .content p { max-width: 680px; font-size: 15px; line-height: 24px; color: var(--secondary); margin: 0 0 24px; }
+    .demo-note { max-width: 680px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); font-size: 14px; line-height: 23px; }
+    .demo-note strong { display: block; margin-bottom: 5px; }
+    .tool-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 28px; }
+    .variant-description { margin-top: 18px; color: var(--secondary); font-size: 13px; line-height: 21px; max-width: 680px; }
+    .sidebar[data-variant="separator"] .children { padding-left: 10px; padding-bottom: 8px; }
+    .sidebar[data-variant="separator"] .group.open:not(:last-child)::after { content: ""; display: block; height: 1px; background: var(--line); margin: 8px 12px 7px 0; }
+    .sidebar[data-variant="separator"] .child-dot,
+    .sidebar[data-variant="soft"] .child-dot { display: block; }
+    .sidebar[data-variant="separator"] .child-row { padding-left: 11px; }
+    .sidebar[data-variant="rail"] .children,
+    .sidebar[data-variant="rail-segment"] .children { padding-left: 16px; margin-left: 20px; }
+    .sidebar[data-variant="rail"] .children::before,
+    .sidebar[data-variant="rail-segment"] .children::before { content: ""; display: block; position: absolute; left: 0; top: 3px; bottom: 7px; width: 2px; background: var(--line); }
+    .sidebar[data-variant="rail"] .group.has-active .children::before { background: var(--blue); }
+    .sidebar[data-variant="rail"] .child-row,
+    .sidebar[data-variant="rail-segment"] .child-row { padding-left: 16px; }
+    .sidebar[data-variant="rail-segment"] .child-row.active::before { content: ""; position: absolute; left: -16px; top: 0; bottom: 0; width: 2px; background: var(--blue); z-index: 1; }
+    .sidebar[data-variant="soft"] .children { padding: 4px 8px; margin: 0 0 0 0; background: var(--hover); border-radius: 8px; }
+    .sidebar[data-variant="soft"] .child-row { padding-left: 12px; min-height: 46px; }
+    .sidebar[data-variant="soft"] .child-row:hover { background: var(--white); }
+    .sidebar[data-variant="soft"] .child-row.active,
+    .sidebar[data-variant="soft"] .child-row.active:hover { background: var(--selected-strong); }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+    @media (max-width: 760px) { .toolbar { padding: 18px; flex-direction: column; gap: 16px; } .stage { min-height: auto; } .content { display: none; } .sidebar { width: 100%; flex-basis: 100%; max-width: 420px; border-right: 0; min-height: calc(100vh - 160px); } .nav { gap: 5px; } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="toolbar">
+    <div><h1>Боковое меню ЛКК</h1><p>Нажимайте на разделы, выбирайте страницы и сравнивайте оформление.</p></div>
+    <div class="variant-picker" role="group" aria-label="Вариант группировки">
+      <button type="button" data-choose="indent" aria-pressed="false">Отступы</button>
+      <button type="button" data-choose="separator" aria-pressed="false">Разделители</button>
+      <button type="button" data-choose="rail-segment" aria-pressed="false">Активный участок</button>
+      <button type="button" data-choose="rail" aria-pressed="false">Линия</button>
+      <button type="button" data-choose="soft" aria-pressed="true">Мягкая подложка</button>
+    </div>
+  </header>
+  <div class="stage">
+    <aside class="sidebar" data-variant="soft" aria-label="Меню ЛКК">
+      <div class="brand"><span class="brand-name">SetlGroup</span><button class="collapse-btn" type="button" title="Свернуть все разделы" aria-label="Свернуть все разделы"><svg class="chevron" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(90deg)"><path d="m15 18-6-6 6-6"/></svg></button></div>
+      <nav class="nav" aria-label="Основная навигация" id="nav"></nav>
+    </aside>
+    <main class="content">
+      <div class="crumb" id="crumb">Личный кабинет / Главная</div>
+      <h2 id="page-title">Главная</h2>
+      <p>Это рабочий прототип бокового меню. Можно открыть несколько разделов одновременно, затем свернуть любой из них. Состояние шеврона и расположение остальных пунктов меняются вместе с разделом.</p>
+      <div class="demo-note"><strong>Как проверить сценарий с длинным меню</strong>Раскройте несколько разделов вручную или нажмите «Раскрыть все». Наведите курсор на родительские и дочерние пункты, выберите страницу и переключите вариант оформления.</div>
+      <div class="tool-actions"><button type="button" id="expand-all">Раскрыть все</button><button type="button" id="collapse-all">Свернуть все</button></div>
+      <div class="variant-description" id="variant-description"></div>
+    </main>
+  </div>
+</div>
+<script>
+  const paths = {
+    home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-7h6v7"/>',
+    accreditation: '<rect x="4" y="4" width="16" height="17" rx="3"/><path d="M9 3h6M8 12l2.5 2.5L16 9"/>',
+    tender: '<path d="m4 19 8-8m-3-3 6 6m-9-8 4-4 9 9-4 4zM2 22l5-5"/>',
+    contract: '<path d="M5 3h10l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM14 3v5h5M8 12h8M8 16h6"/>',
+    supply: '<path d="m12 2 9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 17l9 5 9-5"/>',
+    people: '<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2H3zM18 6a3 3 0 0 1 0 6m2 8v-2a6 6 0 0 0-3-5"/>',
+    review: '<path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM16 3v5h4M8 13l2 2 5-5"/>',
+    roles: '<circle cx="10" cy="7" r="3"/><path d="M4 20v-2a6 6 0 0 1 8-5.7M17 13l4 2v3c0 2-2 3.5-4 4-2-.5-4-2-4-4v-3z"/>',
+    support: '<path d="M3 13v-2a9 9 0 0 1 18 0v2M3 13h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5zm18 0h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-5z"/>'
+  };
+  const groups = [
+    { id: 'accreditation', title: 'Аккредитации', children: ['Заявки на аккредитацию', 'Текущие аккредитации'] },
+    { id: 'tender', title: 'Тендеры', children: ['Выигранные тендеры', 'Результаты тендеров'] },
+    { id: 'contract', title: 'Договоры', children: ['Все договоры', 'Договоры подряда', 'Договоры поставки', 'Договоры субподряда'] },
+    { id: 'supply', title: 'Поставка материалов', children: ['Корректировочная программа', 'Производственная программа'] },
+    { id: 'people', title: 'Сотрудники', children: ['База сотрудников', 'Трудовые ресурсы'] },
+    { id: 'review', title: 'Оценка производства', children: ['Заявки на оценку состояния', 'Список материалов'] },
+    { id: 'roles', title: 'Пользователи и роли', children: ['Список пользователей', 'Список ролей'] }
+  ];
+  const descriptions = {
+    indent: 'Вложенность показана отступом. Фон выделяет только текущую страницу.',
+    separator: 'Разделы с открытыми подпунктами разделены тонкими линиями.',
+    'rail-segment': 'Нейтральная вертикальная линия показывает вложенность; короткий синий участок отмечает выбранный пункт.',
+    rail: 'Вертикальная линия показывает вложенность, а у активного раздела целиком становится синей.',
+    soft: 'Подпункты объединены мягкой подложкой. Выбранная страница выделена внутри группы.'
+  };
+  const state = { open: new Set(), selected: 'Главная', variant: 'soft' };
+  const nav = document.getElementById('nav');
+  const icon = name => `<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">${paths[name]}</svg>`;
+  function setPage(label, section) {
+    state.selected = label;
+    document.getElementById('page-title').textContent = label;
+    document.getElementById('crumb').textContent = `Личный кабинет / ${section ? section + ' / ' : ''}${label}`;
+    updateActive();
+  }
+  function updateActive() {
+    nav.querySelectorAll('.nav-row[data-page], .child-row').forEach(button => {
+      const active = button.dataset.page === state.selected;
+      button.classList.toggle('active', active);
+      if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
+    });
+    nav.querySelectorAll('.group').forEach(group => group.classList.toggle('has-active', [...group.querySelectorAll('.child-row')].some(button => button.dataset.page === state.selected)));
+  }
+  function setOpen(id, open) {
+    const group = nav.querySelector(`[data-group="${id}"]`);
+    const row = group.querySelector('.nav-row');
+    const panel = group.querySelector('.children-wrap');
+    if (open) state.open.add(id); else state.open.delete(id);
+    group.classList.toggle('open', open);
+    row.setAttribute('aria-expanded', String(open));
+    panel.setAttribute('aria-hidden', String(!open));
+    panel.inert = !open;
+  }
+  function build() {
+    const home = document.createElement('button');
+    home.type = 'button'; home.className = 'nav-row'; home.dataset.page = 'Главная';
+    home.innerHTML = `${icon('home')}<span class="nav-label">Главная</span>`;
+    home.addEventListener('click', () => setPage('Главная'));
+    nav.append(home);
+    groups.forEach(({ id, title, children }) => {
+      const group = document.createElement('div'); group.className = 'group'; group.dataset.group = id;
+      const parent = document.createElement('button'); parent.type = 'button'; parent.className = 'nav-row'; parent.setAttribute('aria-expanded', 'false'); parent.setAttribute('aria-controls', `panel-${id}`);
+      parent.innerHTML = `${icon(id)}<span class="nav-label">${title}</span><svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 9 8 8 8-8"/></svg>`;
+      parent.addEventListener('click', () => setOpen(id, !state.open.has(id)));
+      const wrap = document.createElement('div'); wrap.className = 'children-wrap'; wrap.id = `panel-${id}`; wrap.setAttribute('aria-hidden', 'true'); wrap.inert = true;
+      const clip = document.createElement('div'); clip.className = 'children-clip';
+      const list = document.createElement('div'); list.className = 'children';
+      children.forEach(label => {
+        const child = document.createElement('button'); child.type = 'button'; child.className = 'child-row'; child.dataset.page = label;
+        child.innerHTML = `<span class="child-dot" aria-hidden="true"></span><span>${label}</span>`;
+        child.addEventListener('click', () => setPage(label, title));
+        list.append(child);
+      });
+      clip.append(list); wrap.append(clip); group.append(parent, wrap); nav.append(group);
+    });
+    const support = document.createElement('button'); support.type = 'button'; support.className = 'nav-row'; support.dataset.page = 'Техподдержка';
+    support.innerHTML = `${icon('support')}<span class="nav-label">Техподдержка</span>`;
+    support.addEventListener('click', () => setPage('Техподдержка'));
+    nav.append(support);
+    updateActive();
+  }
+  document.querySelectorAll('[data-choose]').forEach(button => button.addEventListener('click', () => {
+    state.variant = button.dataset.choose;
+    document.querySelector('.sidebar').dataset.variant = state.variant;
+    document.querySelectorAll('[data-choose]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    document.getElementById('variant-description').textContent = descriptions[state.variant];
+  }));
+  document.getElementById('expand-all').addEventListener('click', () => groups.forEach(group => setOpen(group.id, true)));
+  document.getElementById('collapse-all').addEventListener('click', () => groups.forEach(group => setOpen(group.id, false)));
+  document.querySelector('.collapse-btn').addEventListener('click', () => groups.forEach(group => setOpen(group.id, false)));
+  build();
+  document.getElementById('variant-description').textContent = descriptions[state.variant];
+</script>
+</body>
+</html>
