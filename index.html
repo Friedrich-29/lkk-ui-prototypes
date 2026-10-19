@@ -164,6 +164,7 @@
     .sidebar[data-variant="rail"] .group.has-active .children::before { background: var(--blue); }
     .sidebar[data-variant="rail"] .child-row,
     .sidebar[data-variant="rail-segment"] .child-row { padding-left: 12px; }
+    .sidebar[data-variant="rail-segment"]:not(.narrow) .child-dot { display: none; }
     .sidebar[data-variant="rail-segment"] .child-row.active::before { content: ""; position: absolute; left: -16px; top: 0; bottom: 0; width: 2px; background: var(--blue); z-index: 1; }
     .sidebar[data-variant="soft"] .children { padding: 4px 8px; margin: 4px 0 0 20px; background: #eef3f9; border-radius: 8px; }
     .sidebar[data-variant="soft"] .child-row { padding-left: 12px; min-height: 46px; background: transparent; }
