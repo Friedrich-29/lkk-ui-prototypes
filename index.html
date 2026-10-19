@@ -18,27 +18,35 @@
       --ink: #273641;
       --secondary: #687987;
       --white: #fff;
+      /* UI kit: black/200, black/310 */
+      --scroll-track: #f6f6f6;
+      --scroll-thumb: #e5e5e5;
     }
     * { box-sizing: border-box; }
     html { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); background: var(--page); }
     body { margin: 0; min-width: 320px; }
     button { font: inherit; cursor: pointer; }
-    .app { min-height: 100vh; display: flex; flex-direction: column; }
-    .toolbar { display: flex; gap: 20px; align-items: flex-start; justify-content: space-between; padding: 22px 32px; background: var(--white); border-bottom: 1px solid var(--line); }
+    .app { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+    .toolbar { flex: 0 0 auto; display: flex; gap: 20px; align-items: flex-start; justify-content: space-between; padding: 22px 32px; background: var(--white); border-bottom: 1px solid var(--line); }
     .toolbar h1 { font-size: 20px; line-height: 28px; margin: 0 0 4px; font-weight: 650; }
     .toolbar p { margin: 0; color: var(--secondary); font-size: 13px; line-height: 20px; }
     .variant-picker { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .variant-picker button, .tool-actions button { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; color: var(--ink); background: var(--white); font-size: 13px; line-height: 18px; white-space: nowrap; transition: background .18s, border-color .18s, color .18s; }
     .variant-picker button:hover, .tool-actions button:hover { background: var(--hover); }
     .variant-picker button[aria-pressed="true"] { color: var(--blue); background: var(--selected); border-color: var(--blue); }
-    .stage { display: flex; align-items: stretch; min-height: calc(100vh - 108px); }
-    .sidebar { width: 304px; flex: 0 0 304px; background: var(--white); border-right: 1px solid var(--line); padding: 20px 16px 32px; }
-    .brand { height: 60px; display: flex; align-items: flex-start; justify-content: space-between; padding: 0 0 12px 0; }
+    .stage { display: flex; align-items: stretch; flex: 1 1 auto; min-height: 0; }
+    .sidebar { width: 304px; flex: 0 0 304px; min-height: 0; display: flex; flex-direction: column; background: var(--white); border-right: 1px solid var(--line); padding: 20px 0 0; }
+    .brand { height: 60px; flex: 0 0 60px; display: flex; align-items: flex-start; justify-content: space-between; margin: 0 16px; padding: 0 0 12px 0; }
     .brand-name { font-size: 16px; font-weight: 750; letter-spacing: -.7px; line-height: 26px; position: relative; margin: 2px 0 0 2px; color: #171d22; }
     .brand-name::before { content: ""; position: absolute; left: -4px; top: -2px; width: 27px; height: 27px; border: 2px solid #ed3d37; pointer-events: none; }
     .collapse-btn { width: 32px; height: 32px; display: grid; place-items: center; background: var(--hover); color: var(--ink); border: 0; border-radius: 7px; }
     .collapse-btn:hover { background: var(--line); }
+    .nav-scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain; margin-right: 4px; padding: 0 4px 20px 16px; scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) var(--scroll-track); }
+    .nav-scroll::-webkit-scrollbar { width: 8px; }
+    .nav-scroll::-webkit-scrollbar-track { background: var(--scroll-track); border-radius: 8px; }
+    .nav-scroll::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 8px; }
     .nav { display: flex; flex-direction: column; gap: 8px; }
+    .support-divider { height: 1px; flex: 0 0 1px; margin: 2px 0; background: var(--line); }
     .nav-row { width: 100%; display: flex; align-items: center; border: 0; background: transparent; color: var(--ink); text-align: left; border-radius: 8px; min-height: 48px; padding: 0 12px; transition: background .16s, color .16s; }
     .nav-row:hover { background: var(--hover); }
     .nav-row:focus-visible, .collapse-btn:focus-visible, .variant-picker button:focus-visible, .tool-actions button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
@@ -56,7 +64,7 @@
     .child-row:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
     .child-row.active { background: var(--selected); color: var(--blue); }
     .child-dot { width: 5px; height: 5px; flex: 0 0 5px; border-radius: 50%; border: 1px solid currentColor; display: none; }
-    .content { flex: 1; min-width: 0; padding: 48px clamp(24px, 6vw, 80px); }
+    .content { flex: 1; min-width: 0; overflow-y: auto; padding: 48px clamp(24px, 6vw, 80px); }
     .crumb { font-size: 13px; color: var(--secondary); margin-bottom: 20px; }
     .content h2 { font-size: 30px; line-height: 38px; margin: 0 0 16px; font-weight: 650; }
     .content p { max-width: 680px; font-size: 15px; line-height: 24px; color: var(--secondary); margin: 0 0 24px; }
@@ -83,7 +91,7 @@
     .sidebar[data-variant="soft"] .child-row.active,
     .sidebar[data-variant="soft"] .child-row.active:hover { background: var(--selected-strong); }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; scroll-behavior: auto !important; } }
-    @media (max-width: 760px) { .toolbar { padding: 18px; flex-direction: column; gap: 16px; } .stage { min-height: auto; } .content { display: none; } .sidebar { width: 100%; flex-basis: 100%; max-width: 420px; border-right: 0; min-height: calc(100vh - 160px); } .nav { gap: 5px; } }
+    @media (max-width: 760px) { .toolbar { padding: 18px; flex-direction: column; gap: 16px; } .content { display: none; } .sidebar { width: 100%; flex-basis: 100%; max-width: 420px; border-right: 0; } .nav { gap: 5px; } }
   </style>
 </head>
 <body>
@@ -101,7 +109,7 @@
   <div class="stage">
     <aside class="sidebar" data-variant="soft" aria-label="Меню ЛКК">
       <div class="brand"><span class="brand-name">SetlGroup</span><button class="collapse-btn" type="button" title="Свернуть все разделы" aria-label="Свернуть все разделы"><svg class="chevron" viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(90deg)"><path d="m15 18-6-6 6-6"/></svg></button></div>
-      <nav class="nav" aria-label="Основная навигация" id="nav"></nav>
+      <div class="nav-scroll"><nav class="nav" aria-label="Основная навигация" id="nav"></nav></div>
     </aside>
     <main class="content">
       <div class="crumb" id="crumb">Личный кабинет / Главная</div>
@@ -193,7 +201,8 @@
     const support = document.createElement('button'); support.type = 'button'; support.className = 'nav-row'; support.dataset.page = 'Техподдержка';
     support.innerHTML = `${icon('support')}<span class="nav-label">Техподдержка</span>`;
     support.addEventListener('click', () => setPage('Техподдержка'));
-    nav.append(support);
+    const divider = document.createElement('div'); divider.className = 'support-divider'; divider.setAttribute('aria-hidden', 'true');
+    nav.append(divider, support);
     updateActive();
   }
   document.querySelectorAll('[data-choose]').forEach(button => button.addEventListener('click', () => {
